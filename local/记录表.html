@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8738a">
+<title>我们的记录 · 本地记录表</title>
+<style>
+  :root{
+    --pink:#e8738a; --pink-dark:#d15a72; --pink-bg:#fdf1f3;
+    --bg:#faf7f5; --card:#ffffff; --text:#3d3437; --muted:#9a8f93;
+    --line:#f0e4e7; --green:#3aa876; --red:#d9534f;
+    --shadow:0 2px 10px rgba(160,100,115,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --pink:#e8738a; --pink-dark:#f08ea2; --pink-bg:#3a2a2e;
+      --bg:#211d1f; --card:#2c2628; --text:#f0e8ea; --muted:#a5989c;
+      --line:#3e3538; --shadow:0 2px 10px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--text);line-height:1.6;padding-bottom:60px}
+  .wrap{max-width:860px;margin:0 auto;padding:14px}
+
+  header h1{font-size:22px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:12px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:99px;
+        padding:3px 12px;color:var(--muted);box-shadow:var(--shadow)}
+  .chip.ok{color:var(--green)}
+  .chip.err{color:var(--red)}
+  .chip.link{cursor:pointer}
+  .chip.link:active{opacity:.7}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:9px 16px;
+         background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow)}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:600}
+  button.danger{color:var(--red)}
+  button.small{padding:4px 10px;font-size:12px;border-radius:8px}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .filters input[type=search]{flex:1;min-width:160px;font:inherit;padding:8px 14px;
+        border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+  .typechips{display:flex;gap:6px;flex-wrap:wrap}
+  .typechips .tchip{padding:4px 12px;border-radius:99px;font-size:13px;border:1px solid var(--line);
+        background:var(--card);cursor:pointer;color:var(--muted)}
+  .typechips .tchip.on{background:var(--pink);border-color:var(--pink);color:#fff}
+
+  .stats{font-size:13px;color:var(--muted);margin-bottom:10px}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;
+        overflow:hidden;box-shadow:var(--shadow)}
+  thead th{background:var(--pink-bg);color:var(--pink-dark);font-size:13px;text-align:left;
+        padding:10px 12px;white-space:nowrap}
+  tbody td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top;font-size:14px}
+  td.c-date{white-space:nowrap;color:var(--muted);font-size:13px}
+  td.c-type{white-space:nowrap}
+  td.c-content{min-width:180px;word-break:break-word;white-space:pre-wrap}
+  td.c-note{color:var(--muted);font-size:13px;word-break:break-word;white-space:pre-wrap}
+  td.c-ops{white-space:nowrap;text-align:right}
+  .stars{color:#f0a500;letter-spacing:1px;font-size:13px}
+  .empty{padding:50px 20px;text-align:center;color:var(--muted)}
+
+  /* 手机：表格变卡片 */
+  @media (max-width:640px){
+    thead{display:none}
+    table,tbody,tr,td{display:block;width:100%}
+    table{background:none;box-shadow:none;overflow:visible}
+    tbody tr{background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+             margin-bottom:10px;padding:12px 14px}
+    tbody td{border:none;padding:2px 0}
+    td.c-ops{text-align:left;margin-top:6px}
+    td[data-label]:not(.c-content):not(.c-ops)::before{
+      content:attr(data-label) "　";color:var(--muted);font-size:12px}
+    td.c-content{font-size:15px;margin:4px 0}
+  }
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(40,20,26,.45);display:none;
+        align-items:flex-end;justify-content:center;z-index:50;padding:0}
+  .mask.show{display:flex}
+  .modal{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;
+        border-radius:18px 18px 0 0;padding:20px 18px 30px}
+  @media (min-width:641px){
+    .mask{align-items:center;padding:20px}
+    .modal{border-radius:18px;padding:24px}
+  }
+  .modal h2{font-size:17px;margin-bottom:14px;color:var(--pink-dark)}
+  .modal h3{font-size:14px;margin:18px 0 8px;color:var(--pink-dark)}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  .field input,.field select,.field textarea{width:100%;font:inherit;padding:9px 12px;
+        border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+  .field textarea{min-height:72px;resize:vertical}
+  .field .row{display:flex;gap:8px}
+  .field .row>*{flex:1}
+  .starpick{display:flex;gap:6px}
+  .starpick button{font-size:22px;padding:2px 6px;background:none;border:none;box-shadow:none;
+        filter:grayscale(1);opacity:.4}
+  .starpick button.on{filter:none;opacity:1}
+  .modal .btns{display:flex;gap:10px;margin-top:16px}
+  .modal .btns button{flex:1}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  details{margin:8px 0;font-size:13px}
+  details summary{cursor:pointer;color:var(--pink-dark)}
+  details .hint{margin:6px 0 6px 2px;line-height:1.8}
+  .divider{border:none;border-top:1px dashed var(--line);margin:18px 0}
+  .banner{background:var(--pink-bg);border:1px solid var(--line);border-radius:12px;
+        padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;
+        align-items:center;gap:10px;flex-wrap:wrap}
+  .banner.show{display:flex}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+        background:rgba(50,35,40,.92);color:#fff;padding:9px 20px;border-radius:99px;
+        font-size:13px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;
+        max-width:88vw;text-align:center}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>💞 我们的记录 <span style="font-size:13px;color:var(--muted);font-weight:400">本地记录表 · 记录即反馈</span></h1>
+    <div class="status-row">
+      <span class="chip ok" id="saveStatus">✅ 数据保存在本机</span>
+      <span class="chip link" id="fileStatus" title="点击管理本地文件">📄 未绑定本地文件</span>
+      <span class="chip link" id="syncStatus" title="点击配置多设备同步">☁️ 未配置同步</span>
+    </div>
+  </header>
+
+  <div class="banner" id="permBanner">
+    🔒 需要你点一下，恢复对本地文件「<span id="permFileName"></span>」的读写权限
+    <button class="small primary" id="btnGrantPerm">恢复连接</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" id="btnAdd">＋ 写一条记录</button>
+    <button id="btnSync">☁️ 立即同步</button>
+    <button id="btnSettings">⚙️ 设置 / 备份</button>
+  </div>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="搜索内容 / 回应…">
+    <div class="typechips" id="typeChips"></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <table id="tbl">
+    <thead>
+      <tr><th>日期</th><th>类型</th><th>内容（记录 / 反馈）</th><th>心情</th><th>回应 / 备注</th><th></th></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="empty" id="empty" style="display:none">
+    还没有记录～点上面「＋ 写一条记录」开始吧 💌
+  </div>
+
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="mask" id="editorMask">
+  <div class="modal">
+    <h2 id="editorTitle">写一条记录</h2>
+    <div class="field">
+      <label>日期</label>
+      <input type="date" id="fDate">
+    </div>
+    <div class="field">
+      <label>类型</label>
+      <select id="fType"></select>
+    </div>
+    <div class="field">
+      <label>内容（想记录、想反馈的话）</label>
+      <textarea id="fContent" placeholder="今天想说……"></textarea>
+    </div>
+    <div class="field">
+      <label>心情打分（可不选，点已选的星星可取消）</label>
+      <div class="starpick" id="fStars"></div>
+    </div>
+    <div class="field">
+      <label>回应 / 备注（对方看到后可以把想法写在这里）</label>
+      <textarea id="fNote" placeholder="可留空"></textarea>
+    </div>
+    <div class="btns">
+      <button id="btnCancelEdit">取消</button>
+      <button class="primary" id="btnSaveEdit">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="mask" id="settingsMask">
+  <div class="modal">
+    <h2>⚙️ 设置 / 备份</h2>
+
+    <h3>📄 保存为本地文件（电脑端推荐）</h3>
+    <p class="hint" id="fsHint">绑定一个 JSON 文件后，每次改动会<b>自动写入该文件</b>。把文件放进坚果云 / OneDrive 等同步盘文件夹，就能自动多一份云备份。</p>
+    <div class="btns" style="margin-top:8px">
+      <button id="btnBindFile">绑定本地文件</button>
+      <button id="btnUnbindFile">解除绑定</button>
+    </div>
+
+    <hr class="divider">
+
+    <h3>☁️ 多设备同步（手机 + 电脑）</h3>
+    <p class="hint">用你自己的 <b>Gitee（国内快，推荐）</b>或 GitHub <b>私有仓库</b>当同步盘：每台设备打开本页面、填同一套配置，数据就会自动合并同步，谁也不会覆盖谁。</p>
+    <details>
+      <summary>怎么获取这些配置？（点开看步骤）</summary>
+      <p class="hint">
+        <b>Gitee（推荐）：</b><br>
+        ① 注册/登录 <b>gitee.com</b> → 右上角「+」新建仓库 → 勾选<b>「私有」</b>→ 勾选「初始化仓库(README)」→ 创建<br>
+        ② 头像 → 设置 → 左侧「私人令牌」→ 生成新令牌 → 只勾 <b>projects</b> → 提交 → 复制令牌<br>
+        ③ 回到这里：平台选 Gitee，「仓库主人」填你的 Gitee 用户名，「仓库名」填刚建的仓库名，粘贴令牌 → 保存并同步<br><br>
+        <b>GitHub：</b>同理，建私有仓库；令牌在 Settings → Developer settings → Fine-grained tokens，只授权该仓库的 <b>Contents: Read and write</b> 权限。<br><br>
+        ⚠️ 令牌相当于钥匙，只保存在你自己设备的浏览器里，不要发给别人。
+      </p>
+    </details>
+    <div class="field"><label>平台</label>
+      <select id="sPlatform">
+        <option value="gitee">Gitee 码云（国内推荐）</option>
+        <option value="github">GitHub</option>
+      </select>
+    </div>
+    <div class="field"><div class="row">
+      <div><label>仓库主人（用户名）</label><input id="sOwner" placeholder="如 zhangwan"></div>
+      <div><label>仓库名</label><input id="sRepo" placeholder="如 our-records"></div>
+    </div></div>
+    <div class="field"><div class="row">
+      <div><label>分支</label><input id="sBranch" placeholder="master 或 main"></div>
+      <div><label>数据文件路径</label><input id="sPath" placeholder="records.json"></div>
+    </div></div>
+    <div class="field"><label>私人令牌（Token）</label>
+      <input id="sToken" type="password" placeholder="粘贴令牌，只存在本机浏览器里">
+    </div>
+    <div class="field"><label style="display:flex;align-items:center;gap:8px;color:var(--text)">
+      <input type="checkbox" id="sAuto" style="width:auto"> 改动后自动同步（推荐）
+    </label></div>
+    <div class="btns">
+      <button class="danger" id="btnClearSync">清除配置</button>
+      <button class="primary" id="btnSaveSync">保存并同步</button>
+    </div>
+
+    <hr class="divider">
+
+    <h3>🏷️ 记录类型（每行一个，可自由增改）</h3>
+    <div class="field"><textarea id="sTypes" style="min-height:110px"></textarea></div>
+
+    <hr class="divider">
+
+    <h3>💾 手动备份 / 恢复</h3>
+    <p class="hint">不想配同步也行：导出 JSON 用微信传到另一台设备，再导入即可（<b>导入是合并，不会覆盖</b>）。导出 CSV 可用 Excel/WPS 打开。</p>
+    <div class="btns" style="flex-wrap:wrap">
+      <button id="btnExportJson">导出 JSON</button>
+      <button id="btnExportCsv">导出 CSV</button>
+      <button id="btnImport">导入 JSON（合并）</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    <div class="btns">
+      <button class="danger" id="btnWipe">清空全部数据</button>
+      <button class="primary" id="btnCloseSettings">完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================= 基础存储 ================= */
+const LS_DATA = "local-records-data-v1";
+const LS_CFG  = "local-records-cfg-v1";
+
+const DEFAULT_TYPES = ["💛 感谢","💗 甜蜜","🌧️ 在意","⭐ 希望","📖 日常","😊 心情"];
+
+let state = { version:1, records:[] };   // records: {id,date,type,content,rating,note,createdAt,updatedAt,deleted}
+let cfg = {
+  types: DEFAULT_TYPES.slice(),
+  sync: { platform:"gitee", owner:"", repo:"", branch:"", path:"records.json", token:"", auto:true }
+};
+let filterType = "";     // "" = 全部
+let editingId = null;
+let pickedRating = 0;
+
+function loadLocal(){
+  try{ const d = JSON.parse(localStorage.getItem(LS_DATA)); if(d && Array.isArray(d.records)) state = d; }catch(e){}
+  try{ const c = JSON.parse(localStorage.getItem(LS_CFG));
+    if(c){ if(Array.isArray(c.types) && c.types.length) cfg.types = c.types;
+           if(c.sync) cfg.sync = Object.assign(cfg.sync, c.sync); } }catch(e){}
+}
+function saveCfg(){ localStorage.setItem(LS_CFG, JSON.stringify(cfg)); }
+
+function nowStr(){ const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+/* 统一序列化：按 id 排序，保证各设备生成的内容一致，避免无意义的同步提交 */
+function serialize(records){
+  const rs = records.slice().sort((a,b)=> a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return JSON.stringify({ version:1, records: rs }, null, 2);
+}
+
+/* 合并两份记录：同 id 取 updatedAt 较新的一条；删除标记也按同样规则生效 */
+function mergeRecords(a, b){
+  const map = new Map();
+  for(const r of a) if(r && r.id) map.set(r.id, r);
+  for(const r of b){
+    if(!r || !r.id) continue;
+    const cur = map.get(r.id);
+    if(!cur || (r.updatedAt||0) > (cur.updatedAt||0)) map.set(r.id, r);
+  }
+  return Array.from(map.values());
+}
+
+function persist(opts){
+  opts = opts || {};
+  localStorage.setItem(LS_DATA, JSON.stringify(state));
+  setChip("saveStatus","ok","✅ 已自动保存 "+nowStr());
+  if(!opts.skipFile)  scheduleFileWrite();
+  if(!opts.skipCloud) scheduleAutoSync();
+}
+
+/* ================= 界面渲染 ================= */
+const $ = id => document.getElementById(id);
+function setChip(id, cls, text){ const el=$(id); el.className="chip "+(cls||"")+(id!=="saveStatus"?" link":""); el.textContent=text; }
+let toastTimer=null;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function visibleRecords(){
+  const q = $("q").value.trim().toLowerCase();
+  return state.records
+    .filter(r=>!r.deleted)
+    .filter(r=>!filterType || r.type===filterType)
+    .filter(r=>!q || (r.content||"").toLowerCase().includes(q)
+                  || (r.note||"").toLowerCase().includes(q)
+                  || (r.type||"").toLowerCase().includes(q))
+    .sort((x,y)=> (y.date||"").localeCompare(x.date||"") || (y.createdAt||0)-(x.createdAt||0));
+}
+
+function render(){
+  // 类型筛选 chips
+  const chips = ['<span class="tchip'+(filterType===""?" on":"")+'" data-t="">全部</span>']
+    .concat(cfg.types.map(t=>'<span class="tchip'+(filterType===t?" on":"")+'" data-t="'+esc(t)+'">'+esc(t)+"</span>"));
+  $("typeChips").innerHTML = chips.join("");
+
+  const list = visibleRecords();
+  const all = state.records.filter(r=>!r.deleted);
+  const month = todayStr().slice(0,7);
+  const monthCount = all.filter(r=>(r.date||"").startsWith(month)).length;
+  const rated = all.filter(r=>r.rating>0);
+  const avg = rated.length ? (rated.reduce((s,r)=>s+r.rating,0)/rated.length).toFixed(1) : null;
+  $("stats").textContent = "共 "+all.length+" 条 · 本月 "+monthCount+" 条"+(avg?(" · 平均心情 "+avg+" ★"):"");
+
+  const tb = $("tbody");
+  tb.innerHTML = list.map(r=>{
+    const stars = r.rating>0 ? '<span class="stars">'+"★".repeat(r.rating)+"</span>" : '<span style="color:var(--line)">—</span>';
+    return "<tr>"+
+      '<td class="c-date" data-label="📅">'+esc(r.date||"")+"</td>"+
+      '<td class="c-type" data-label="🏷️">'+esc(r.type||"")+"</td>"+
+      '<td class="c-content">'+esc(r.content||"")+"</td>"+
+      '<td class="c-stars" data-label="心情">'+stars+"</td>"+
+      '<td class="c-note" data-label="💬">'+esc(r.note||"")+"</td>"+
+      '<td class="c-ops">'+
+        '<button class="small" data-edit="'+r.id+'">编辑</button> '+
+        '<button class="small danger" data-del="'+r.id+'">删除</button></td>'+
+    "</tr>";
+  }).join("");
+  $("tbl").style.display = list.length ? "" : "none";
+  $("empty").style.display = list.length ? "none" : "";
+}
+
+/* ================= 增改删 ================= */
+function openEditor(id){
+  editingId = id || null;
+  const r = id ? state.records.find(x=>x.id===id) : null;
+  $("editorTitle").textContent = r ? "编辑记录" : "写一条记录";
+  $("fDate").value = r ? (r.date||todayStr()) : todayStr();
+  const typeList = cfg.types.slice();
+  if(r && r.type && !typeList.includes(r.type)) typeList.unshift(r.type);
+  $("fType").innerHTML = typeList.map(t=>'<option'+((r?r.type:typeList[0])===t?" selected":"")+">"+esc(t)+"</option>").join("");
+  $("fContent").value = r ? (r.content||"") : "";
+  $("fNote").value = r ? (r.note||"") : "";
+  pickedRating = r ? (r.rating||0) : 0;
+  renderStars();
+  $("editorMask").classList.add("show");
+  setTimeout(()=>$("fContent").focus(), 100);
+}
+function renderStars(){
+  $("fStars").innerHTML = [1,2,3,4,5].map(n=>
+    '<button type="button" class="'+(n<=pickedRating?"on":"")+'" data-star="'+n+'">⭐</button>').join("");
+}
+function saveEditor(){
+  const content = $("fContent").value.trim();
+  if(!content){ toast("内容不能为空哦"); return; }
+  const now = Date.now();
+  if(editingId){
+    const r = state.records.find(x=>x.id===editingId);
+    if(r){ r.date=$("fDate").value||todayStr(); r.type=$("fType").value; r.content=content;
+           r.note=$("fNote").value.trim(); r.rating=pickedRating; r.updatedAt=now; }
+  }else{
+    state.records.push({ id:uid(), date:$("fDate").value||todayStr(), type:$("fType").value,
+      content, note:$("fNote").value.trim(), rating:pickedRating,
+      createdAt:now, updatedAt:now, deleted:false });
+  }
+  $("editorMask").classList.remove("show");
+  persist(); render();
+}
+function delRecord(id){
+  const r = state.records.find(x=>x.id===id);
+  if(!r) return;
+  if(!confirm("删除这条记录？\n（已同步的设备上也会一起删除）")) return;
+  r.deleted = true; r.updatedAt = Date.now();
+  persist(); render(); toast("已删除");
+}
+
+/* ================= 本地文件（File System Access，电脑 Chrome/Edge） ================= */
+const FS_OK = "showSaveFilePicker" in window;
+let fileHandle = null;
+let fileWriteTimer = null;
+
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open("local-records-idb",1);
+    req.onupgradeneeded = ()=>req.result.createObjectStore("kv");
+    req.onsuccess = ()=>res(req.result);
+    req.onerror = ()=>rej(req.error);
+  });
+}
+async function idbSet(k,v){ const db=await idbOpen(); return new Promise((res,rej)=>{
+  const tx=db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k);
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }
+async function idbGet(k){ const db=await idbOpen(); return new Promise((res,rej)=>{
+  const rq=db.transaction("kv").objectStore("kv").get(k);
+  rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error); }); }
+async function idbDel(k){ const db=await idbOpen(); return new Promise((res,rej)=>{
+  const tx=db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k);
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }
+
+function updateFileChip(){
+  if(!FS_OK){ setChip("fileStatus","","📄 本机自动保存中（此浏览器不支持绑定文件）"); return; }
+  setChip("fileStatus", fileHandle?"ok":"", fileHandle ? "📄 已绑定 "+fileHandle.name : "📄 未绑定本地文件");
+}
+async function readAndMergeFile(){
+  try{
+    const f = await fileHandle.getFile();
+    const txt = await f.text();
+    if(txt.trim()){
+      const d = JSON.parse(txt);
+      const recs = Array.isArray(d) ? d : (d.records||[]);
+      state.records = mergeRecords(state.records, recs);
+      persist({skipFile:true}); render();
+    }
+  }catch(e){ /* 新文件或格式不对，直接以当前数据写入 */ }
+}
+async function writeFileNow(){
+  if(!fileHandle) return;
+  try{
+    const w = await fileHandle.createWritable();
+    await w.write(serialize(state.records));
+    await w.close();
+    updateFileChip();
+  }catch(e){ setChip("fileStatus","err","📄 写入文件失败（点击重试）"); }
+}
+function scheduleFileWrite(){
+  if(!fileHandle) return;
+  clearTimeout(fileWriteTimer);
+  fileWriteTimer = setTimeout(writeFileNow, 800);
+}
+async function bindFile(){
+  if(!FS_OK){ toast("此浏览器不支持绑定文件，请用「导出 JSON」备份"); return; }
+  try{
+    fileHandle = await showSaveFilePicker({
+      suggestedName:"我们的记录数据.json",
+      types:[{description:"JSON 数据", accept:{"application/json":[".json"]}}]
+    });
+    await idbSet("fileHandle", fileHandle);
+    await readAndMergeFile();
+    await writeFileNow();
+    toast("已绑定，之后改动会自动写入该文件");
+  }catch(e){ /* 用户取消 */ }
+  updateFileChip();
+}
+async function unbindFile(){
+  fileHandle = null; await idbDel("fileHandle");
+  updateFileChip(); toast("已解除绑定（数据仍在本机浏览器里）");
+}
+async function restoreFileHandle(){
+  if(!FS_OK) { updateFileChip(); return; }
+  try{
+    const h = await idbGet("fileHandle");
+    if(!h) { updateFileChip(); return; }
+    const perm = await h.queryPermission({mode:"readwrite"});
+    if(perm === "granted"){
+      fileHandle = h;
+      await readAndMergeFile();
+    }else{
+      $("permFileName").textContent = h.name;
+      $("permBanner").classList.add("show");
+      $("btnGrantPerm").onclick = async ()=>{
+        try{
+          if(await h.requestPermission({mode:"readwrite"}) === "granted"){
+            fileHandle = h;
+            $("permBanner").classList.remove("show");
+            await readAndMergeFile();
+            updateFileChip();
+            toast("已恢复本地文件连接");
+          }
+        }catch(e){}
+      };
+    }
+  }catch(e){}
+  updateFileChip();
+}
+
+/* ================= 云同步（Gitee / GitHub 私有仓库） ================= */
+let syncTimer = null;
+let syncing = false;
+
+function syncConfigured(){ const s=cfg.sync; return !!(s.owner && s.repo && s.token); }
+function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g,"")))); }
+function defaultBranch(){ return cfg.sync.branch || (cfg.sync.platform==="gitee" ? "master" : "main"); }
+function syncPath(){ return (cfg.sync.path||"records.json").replace(/^\/+/,""); }
+
+async function apiGetFile(){
+  const s = cfg.sync, br = defaultBranch(), p = encodeURIComponent(syncPath()).replace(/%2F/g,"/");
+  let url, opt = {};
+  if(s.platform==="gitee"){
+    url = "https://gitee.com/api/v5/repos/"+s.owner+"/"+s.repo+"/contents/"+p+
+          "?ref="+encodeURIComponent(br)+"&access_token="+encodeURIComponent(s.token);
+  }else{
+    url = "https://api.github.com/repos/"+s.owner+"/"+s.repo+"/contents/"+p+"?ref="+encodeURIComponent(br);
+    opt.headers = { "Authorization":"Bearer "+s.token, "Accept":"application/vnd.github+json" };
+  }
+  const res = await fetch(url, opt);
+  if(res.status===404) return { notFound:true };
+  if(!res.ok) throw new Error("读取云端失败("+res.status+")");
+  const j = await res.json();
+  // Gitee 对不存在的文件有时返回空数组/空对象
+  if(!j || Array.isArray(j) || !j.content) return { notFound:true };
+  return { sha:j.sha, text:b64decode(j.content) };
+}
+async function apiPutFile(text, sha){
+  const s = cfg.sync, br = defaultBranch(), p = encodeURIComponent(syncPath()).replace(/%2F/g,"/");
+  const message = "记录同步 "+new Date().toLocaleString("zh-CN",{hour12:false});
+  let url, opt;
+  if(s.platform==="gitee"){
+    url = "https://gitee.com/api/v5/repos/"+s.owner+"/"+s.repo+"/contents/"+p;
+    const body = { access_token:s.token, content:b64encode(text), message, branch:br };
+    if(sha){ body.sha = sha; }
+    opt = { method: sha ? "PUT" : "POST",
+            headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) };
+  }else{
+    url = "https://api.github.com/repos/"+s.owner+"/"+s.repo+"/contents/"+p;
+    const body = { message, content:b64encode(text), branch:br };
+    if(sha) body.sha = sha;
+    opt = { method:"PUT",
+            headers:{ "Authorization":"Bearer "+s.token, "Accept":"application/vnd.github+json",
+                      "Content-Type":"application/json" },
+            body: JSON.stringify(body) };
+  }
+  const res = await fetch(url, opt);
+  if(!res.ok){
+    const conflict = (res.status===409 || res.status===422 || res.status===400);
+    const err = new Error("写入云端失败("+res.status+")");
+    err.conflict = conflict;
+    throw err;
+  }
+}
+
+async function syncNow(auto){
+  if(!syncConfigured()){
+    if(!auto){ toast("先在设置里配置同步仓库"); openSettings(); }
+    return;
+  }
+  if(syncing) return;
+  syncing = true;
+  setChip("syncStatus","","☁️ 同步中…");
+  try{
+    for(let attempt=0; attempt<2; attempt++){
+      const remote = await apiGetFile();
+      let remoteRecords = [];
+      if(!remote.notFound){
+        try{
+          const d = JSON.parse(remote.text);
+          remoteRecords = Array.isArray(d) ? d : (d.records||[]);
+        }catch(e){ /* 云端文件损坏则以本地为准重写 */ }
+      }
+      state.records = mergeRecords(state.records, remoteRecords);
+      persist({skipCloud:true});
+      render();
+      const mergedText = serialize(state.records);
+      if(remote.notFound || mergedText !== serialize(remoteRecords)){
+        try{
+          await apiPutFile(mergedText, remote.notFound ? null : remote.sha);
+        }catch(e){
+          if(e.conflict && attempt===0) continue;  // 对方刚提交过 → 重拉一次再合并
+          throw e;
+        }
+      }
+      break;
+    }
+    setChip("syncStatus","ok","☁️ 已同步 "+nowStr());
+  }catch(e){
+    setChip("syncStatus","err","☁️ 同步失败，数据已存本机（点击重试）");
+    if(!auto) toast(navigator.onLine ? String(e.message||e) : "当前离线，联网后会自动重试");
+  }finally{
+    syncing = false;
+  }
+}
+function scheduleAutoSync(){
+  if(!syncConfigured() || !cfg.sync.auto) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(()=>syncNow(true), 4000);
+}
+
+/* ================= 设置弹窗 ================= */
+function openSettings(){
+  const s = cfg.sync;
+  $("sPlatform").value = s.platform;
+  $("sOwner").value = s.owner;  $("sRepo").value = s.repo;
+  $("sBranch").value = s.branch; $("sPath").value = s.path;
+  $("sToken").value = s.token;  $("sAuto").checked = s.auto !== false;
+  $("sTypes").value = cfg.types.join("\n");
+  if(!FS_OK) $("fsHint").innerHTML = "📱 当前浏览器（多为手机端）不支持直接绑定文件——数据已自动存在本机浏览器里，多设备请用下方「云同步」或「导出/导入」。";
+  $("settingsMask").classList.add("show");
+}
+function saveSettingsFromModal(){
+  cfg.sync = {
+    platform: $("sPlatform").value,
+    owner: $("sOwner").value.trim(),
+    repo: $("sRepo").value.trim(),
+    branch: $("sBranch").value.trim(),
+    path: $("sPath").value.trim() || "records.json",
+    token: $("sToken").value.trim(),
+    auto: $("sAuto").checked
+  };
+  const types = $("sTypes").value.split("\n").map(x=>x.trim()).filter(Boolean);
+  if(types.length) cfg.types = types;
+  saveCfg();
+  if(!syncConfigured()) setChip("syncStatus","","☁️ 未配置同步");
+  render();
+}
+
+/* ================= 导入导出 ================= */
+function download(name, text, mime){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type:mime}));
+  a.download = name;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+}
+function exportJson(){
+  download("我们的记录_"+todayStr()+".json", serialize(state.records), "application/json");
+  toast("已导出 JSON（含全部数据，可在别的设备导入合并）");
+}
+function exportCsv(){
+  const head = ["日期","类型","内容","心情","回应/备注"];
+  const q = v => '"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const rows = state.records.filter(r=>!r.deleted)
+    .sort((x,y)=>(y.date||"").localeCompare(x.date||""))
+    .map(r=>[r.date,r.type,r.content,r.rating>0?r.rating:"",r.note].map(q).join(","));
+  download("我们的记录_"+todayStr()+".csv", "\uFEFF"+head.map(q).join(",")+"\n"+rows.join("\n"), "text/csv");
+  toast("已导出 CSV，可用 Excel / WPS 打开");
+}
+function importJson(file){
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    try{
+      const d = JSON.parse(rd.result);
+      const recs = Array.isArray(d) ? d : (d.records||[]);
+      if(!Array.isArray(recs)) throw 0;
+      const before = state.records.filter(r=>!r.deleted).length;
+      state.records = mergeRecords(state.records, recs);
+      persist(); render();
+      const after = state.records.filter(r=>!r.deleted).length;
+      toast("导入完成，合并后共 "+after+" 条（新增 "+Math.max(0,after-before)+"）");
+    }catch(e){ toast("文件格式不对，需要本应用导出的 JSON"); }
+  };
+  rd.readAsText(file);
+}
+
+/* ================= 事件绑定 ================= */
+$("btnAdd").onclick = ()=>openEditor(null);
+$("btnSaveEdit").onclick = saveEditor;
+$("btnCancelEdit").onclick = ()=>$("editorMask").classList.remove("show");
+$("fStars").addEventListener("click", e=>{
+  const b = e.target.closest("[data-star]");
+  if(!b) return;
+  const n = +b.dataset.star;
+  pickedRating = (pickedRating===n) ? 0 : n;
+  renderStars();
+});
+$("tbody").addEventListener("click", e=>{
+  const ed = e.target.closest("[data-edit]"), dl = e.target.closest("[data-del]");
+  if(ed) openEditor(ed.dataset.edit);
+  if(dl) delRecord(dl.dataset.del);
+});
+$("typeChips").addEventListener("click", e=>{
+  const c = e.target.closest(".tchip");
+  if(!c) return;
+  filterType = c.dataset.t;
+  render();
+});
+$("q").addEventListener("input", render);
+
+$("btnSync").onclick = ()=>syncNow(false);
+$("syncStatus").onclick = ()=> syncConfigured() ? syncNow(false) : openSettings();
+$("fileStatus").onclick = ()=> fileHandle ? writeFileNow() : openSettings();
+
+$("btnSettings").onclick = openSettings;
+$("btnCloseSettings").onclick = ()=>{ saveSettingsFromModal(); $("settingsMask").classList.remove("show"); };
+$("btnSaveSync").onclick = ()=>{ saveSettingsFromModal();
+  if(syncConfigured()){ $("settingsMask").classList.remove("show"); syncNow(false); }
+  else toast("请把 用户名 / 仓库名 / 令牌 填完整"); };
+$("btnClearSync").onclick = ()=>{
+  if(!confirm("清除同步配置？（不影响已有记录）")) return;
+  cfg.sync = { platform:"gitee", owner:"", repo:"", branch:"", path:"records.json", token:"", auto:true };
+  saveCfg(); openSettings(); setChip("syncStatus","","☁️ 未配置同步");
+};
+$("btnBindFile").onclick = bindFile;
+$("btnUnbindFile").onclick = unbindFile;
+$("btnExportJson").onclick = exportJson;
+$("btnExportCsv").onclick = exportCsv;
+$("btnImport").onclick = ()=>$("importFile").click();
+$("importFile").addEventListener("change", e=>{
+  if(e.target.files[0]) importJson(e.target.files[0]);
+  e.target.value = "";
+});
+$("btnWipe").onclick = ()=>{
+  if(!confirm("确定清空全部记录？此操作不可恢复！")) return;
+  if(!confirm("再确认一次：真的要清空吗？（云端与本地文件也会被覆盖为空）")) return;
+  state.records.forEach(r=>{ r.deleted=true; r.updatedAt=Date.now(); });
+  persist(); render(); toast("已清空");
+};
+[["editorMask"],["settingsMask"]].forEach(([id])=>{
+  $(id).addEventListener("click", e=>{
+    if(e.target===$(id)){
+      if(id==="settingsMask") saveSettingsFromModal();
+      $(id).classList.remove("show");
+    }
+  });
+});
+window.addEventListener("online", ()=>syncNow(true));
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" && syncConfigured()) syncNow(true);
+});
+
+/* ================= 启动 ================= */
+loadLocal();
+render();
+if(!syncConfigured()) setChip("syncStatus","","☁️ 未配置同步（点击设置）");
+restoreFileHandle().then(()=>{ if(syncConfigured()) syncNow(true); });
+</script>
+</body>
+</html>

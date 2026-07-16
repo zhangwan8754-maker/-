@@ -1,0 +1,90 @@
+page { background: #f6ede9; color: #2b2430; font-size: 28rpx; }
+
+.boot { padding: 200rpx 0; text-align: center; color: #8a8291; }
+.errbox { padding: 120rpx 60rpx; text-align: center; }
+.errbox .err-emoji { font-size: 80rpx; margin-bottom: 24rpx; }
+.errbox .err-text { color: #6a6270; line-height: 1.7; font-size: 28rpx; text-align: left; background: #fff; padding: 30rpx; border-radius: 24rpx; box-shadow: 0 6rpx 24rpx rgba(180,90,110,.1); }
+
+/* 顶部欢迎条 */
+.hello { display: flex; align-items: center; gap: 20rpx; padding: 22rpx 30rpx; }
+.hello .avatar { width: 78rpx; height: 78rpx; border-radius: 50%; background: #fde8ec; display: flex; align-items: center; justify-content: center; font-size: 42rpx; }
+.hello .hi { font-size: 32rpx; font-weight: 800; }
+.hello .sub { font-size: 22rpx; color: #a89aa2; margin-top: 4rpx; }
+.hello .hello-txt { flex: 1; }
+.hello .gear { width: 66rpx; height: 66rpx; border-radius: 50%; background: #fff; box-shadow: 0 4rpx 14rpx rgba(180,90,110,.1); display: flex; align-items: center; justify-content: center; font-size: 34rpx; }
+
+/* 过滤 chips */
+.filters { white-space: nowrap; padding: 8rpx 24rpx 12rpx; }
+.filters .chip { display: inline-block; padding: 13rpx 28rpx; margin-right: 14rpx; border-radius: 999rpx; font-size: 27rpx; color: #8a8291; background: #fff; box-shadow: 0 3rpx 10rpx rgba(180,90,110,.08); }
+.filters .chip.active { background: #e8738a; color: #fff; }
+
+/* 空状态 */
+.empty { text-align: center; color: #a89aa2; padding: 120rpx 60rpx; }
+.empty .big { font-size: 96rpx; margin-bottom: 20rpx; }
+.empty-sub { font-size: 26rpx; margin-top: 8rpx; }
+
+/* 记录卡片 */
+.feed { padding: 12rpx 24rpx 220rpx; }
+.card { background: #fff; border-radius: 32rpx; box-shadow: 0 10rpx 30rpx rgba(180,90,110,.10); margin-bottom: 28rpx; overflow: hidden; }
+.card-head { display: flex; align-items: center; gap: 18rpx; padding: 26rpx 28rpx 0; }
+.mini-avatar { width: 66rpx; height: 66rpx; border-radius: 50%; background: #fde8ec; display: flex; align-items: center; justify-content: center; font-size: 36rpx; }
+.head-mid { flex: 1; }
+.card-head .name { font-weight: 700; font-size: 29rpx; }
+.card-head .name .me { color: #d9556f; font-weight: 400; font-size: 25rpx; }
+.card-head .time { font-size: 23rpx; color: #a89aa2; margin-top: 2rpx; }
+.badge { padding: 7rpx 20rpx; border-radius: 999rpx; font-size: 24rpx; font-weight: 600; }
+
+.content { padding: 18rpx 30rpx 0; font-size: 31rpx; line-height: 1.62; white-space: pre-wrap; word-break: break-word; }
+.mood { padding: 12rpx 30rpx 0; font-size: 46rpx; }
+
+.actions { display: flex; gap: 34rpx; padding: 22rpx 30rpx 24rpx; }
+.actions .act { font-size: 25rpx; color: #a89aa2; }
+
+/* 想法 / 评论 */
+.comments { border-top: 1rpx dashed #efe0e0; background: #fdf5f7; }
+.comment { display: flex; gap: 14rpx; padding: 20rpx 28rpx; border-bottom: 1rpx solid #f3e9ec; align-items: flex-start; }
+.comment .c-emoji { font-size: 32rpx; line-height: 1.4; }
+.comment .c-body { flex: 1; }
+.comment .c-name { font-weight: 700; font-size: 25rpx; }
+.comment .c-time { font-weight: 400; color: #b7abb2; font-size: 21rpx; margin-left: 12rpx; }
+.comment .c-text { font-size: 27rpx; margin-top: 4rpx; white-space: pre-wrap; word-break: break-word; }
+.comment .c-del { color: #b7abb2; font-size: 23rpx; padding: 0 6rpx; }
+
+.comment-box { display: flex; align-items: center; gap: 14rpx; padding: 18rpx 22rpx; }
+.comment-box .c-input { flex: 1; background: #fff; border-radius: 999rpx; padding: 16rpx 26rpx; font-size: 27rpx; border: 1rpx solid #f0e2e6; }
+.comment-box .send { width: 72rpx; height: 72rpx; border-radius: 50%; background: #e8738a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 32rpx; }
+
+/* 悬浮写按钮 */
+.fab { position: fixed; right: 44rpx; bottom: calc(56rpx + env(safe-area-inset-bottom)); width: 108rpx; height: 108rpx; border-radius: 50%; background: #e8738a; color: #fff; font-size: 60rpx; display: flex; align-items: center; justify-content: center; box-shadow: 0 16rpx 40rpx rgba(217,85,111,.45); z-index: 30; }
+
+/* 弹层 */
+.mask { position: fixed; left: 0; right: 0; top: 0; bottom: 0; background: rgba(20,10,16,.45); display: flex; align-items: flex-end; z-index: 50; }
+.sheet { width: 100%; background: #fff; border-radius: 40rpx 40rpx 0 0; padding: 16rpx 36rpx calc(40rpx + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; box-sizing: border-box; }
+.grip { width: 76rpx; height: 8rpx; border-radius: 8rpx; background: #ece0e0; margin: 16rpx auto 20rpx; }
+.sheet-title { font-size: 34rpx; font-weight: 800; margin-bottom: 20rpx; }
+.label { font-size: 25rpx; color: #a89aa2; font-weight: 600; margin: 22rpx 0 14rpx; }
+
+.type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx; }
+.type-opt { border: 2rpx solid #efe6e6; border-radius: 22rpx; padding: 20rpx 8rpx; text-align: center; font-size: 26rpx; color: #6a6270; }
+.type-opt .emo { display: block; font-size: 44rpx; margin-bottom: 6rpx; }
+.type-opt.active { border-color: #e8738a; background: #fde8ec; color: #d9556f; font-weight: 700; }
+
+.mood-picker { display: flex; gap: 14rpx; }
+.mood-opt { flex: 1; text-align: center; padding: 18rpx 0; border-radius: 22rpx; font-size: 50rpx; border: 2rpx solid #efe6e6; }
+.mood-opt.active { border-color: #e8738a; background: #fde8ec; }
+
+.textarea { width: 100%; box-sizing: border-box; min-height: 160rpx; border: 2rpx solid #efe6e6; border-radius: 22rpx; padding: 22rpx 24rpx; font-size: 30rpx; line-height: 1.5; }
+.text-input { width: 100%; box-sizing: border-box; border: 2rpx solid #efe6e6; border-radius: 22rpx; padding: 22rpx 24rpx; font-size: 30rpx; }
+
+.emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14rpx; }
+.emoji-opt { text-align: center; padding: 16rpx 0; border-radius: 18rpx; font-size: 48rpx; border: 2rpx solid #efe6e6; }
+.emoji-opt.active { border-color: #e8738a; background: #fde8ec; }
+
+.btn-primary { margin-top: 30rpx; text-align: center; padding: 26rpx; border-radius: 24rpx; background: #e8738a; color: #fff; font-weight: 700; font-size: 32rpx; box-shadow: 0 10rpx 26rpx rgba(217,85,111,.3); }
+.btn-primary.disabled { opacity: .5; }
+.btn-ghost { margin-top: 12rpx; text-align: center; padding: 22rpx; color: #a89aa2; font-size: 27rpx; }
+
+/* 首次设置 */
+.setup-logo { text-align: center; font-size: 92rpx; margin: 20rpx 0 6rpx; }
+.setup-title { text-align: center; font-size: 34rpx; font-weight: 800; }
+.setup-sub { text-align: center; color: #a89aa2; font-size: 26rpx; margin-top: 8rpx; }

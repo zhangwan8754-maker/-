@@ -1,0 +1,133 @@
+<!-- 加载 / 报错 -->
+<view wx:if="{{!ready}}" class="boot">正在加载…</view>
+<view wx:elif="{{errMsg}}" class="errbox">
+  <view class="err-emoji">🛠️</view>
+  <view class="err-text">{{errMsg}}</view>
+</view>
+
+<block wx:else>
+  <!-- 顶部欢迎条 -->
+  <view class="hello">
+    <view class="avatar">{{myEmoji}}</view>
+    <view class="hello-txt">
+      <view class="hi">你好，{{myName || '亲爱的'}}</view>
+      <view class="sub">☁️ 实时同步 · 你俩共享</view>
+    </view>
+    <view class="gear" bindtap="openSettings">⚙️</view>
+  </view>
+
+  <!-- 类型过滤 -->
+  <scroll-view scroll-x="true" class="filters">
+    <view class="chip {{filter==='all'?'active':''}}" bindtap="onFilter" data-filter="all">全部</view>
+    <view wx:for="{{types}}" wx:key="key" class="chip {{filter===item.key?'active':''}}" bindtap="onFilter" data-filter="{{item.key}}">{{item.emoji}} {{item.label}}</view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{records.length===0}}" class="empty">
+    <view class="big">🌱</view>
+    <view>还没有记录</view>
+    <view class="empty-sub">点右下角的 ＋ 写下第一条吧</view>
+    <view class="empty-sub">感谢、甜蜜、在意的事，或今天的心情</view>
+  </view>
+
+  <!-- 记录流 -->
+  <view class="feed">
+    <view wx:for="{{records}}" wx:key="_id" class="card">
+      <view class="card-head">
+        <view class="mini-avatar">{{item.author_emoji}}</view>
+        <view class="head-mid">
+          <view class="name">{{item.author_name}}<text wx:if="{{item.mine}}" class="me"> · 我</text></view>
+          <view class="time">{{item.timeText}}</view>
+        </view>
+        <view class="badge" style="color:{{item.typeInfo.color}};background:{{item.typeInfo.soft}}">{{item.typeInfo.emoji}} {{item.typeInfo.label}}</view>
+      </view>
+
+      <view class="content">{{item.content}}</view>
+      <view wx:if="{{item.moodEmoji}}" class="mood">{{item.moodEmoji}}</view>
+
+      <view class="actions">
+        <text class="act">💬 {{item.commentText}}</text>
+        <text wx:if="{{item.mine}}" class="act" bindtap="editRecord" data-id="{{item._id}}">✏️ 编辑</text>
+        <text wx:if="{{item.mine}}" class="act" bindtap="deleteRecord" data-id="{{item._id}}">🗑 删除</text>
+      </view>
+
+      <!-- 想法 / 评论 -->
+      <view class="comments">
+        <view wx:for="{{item.comments}}" wx:for-item="c" wx:key="_id" class="comment">
+          <text class="c-emoji">{{c.author_emoji}}</text>
+          <view class="c-body">
+            <view class="c-name">{{c.author_name}}<text class="c-time">{{c.timeText}}</text></view>
+            <view class="c-text">{{c.content}}</view>
+          </view>
+          <text wx:if="{{c.mine}}" class="c-del" bindtap="deleteComment" data-id="{{c._id}}">删除</text>
+        </view>
+        <view class="comment-box">
+          <input class="c-input" placeholder="发表你的想法…" value="{{drafts[item._id]}}" data-id="{{item._id}}" bindinput="onDraftInput" confirm-type="send" bindconfirm="sendComment" />
+          <view class="send" bindtap="sendComment" data-id="{{item._id}}">➤</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 悬浮写按钮 -->
+  <view class="fab" bindtap="openCompose">＋</view>
+
+  <!-- 写 / 编辑 记录 -->
+  <view wx:if="{{showCompose}}" class="mask" bindtap="closeCompose">
+    <view class="sheet" catchtap="noop">
+      <view class="grip"></view>
+      <view class="sheet-title">{{compose.editingId ? '编辑记录' : '写一条记录'}}</view>
+
+      <view class="label">类型</view>
+      <view class="type-grid">
+        <view wx:for="{{types}}" wx:key="key" class="type-opt {{compose.type===item.key?'active':''}}" bindtap="pickType" data-type="{{item.key}}">
+          <text class="emo">{{item.emoji}}</text>{{item.label}}
+        </view>
+      </view>
+
+      <block wx:if="{{compose.type==='mood'}}">
+        <view class="label">今天的心情</view>
+        <view class="mood-picker">
+          <view wx:for="{{moods}}" wx:key="*this" class="mood-opt {{compose.mood===index+1?'active':''}}" bindtap="pickMood" data-mood="{{index+1}}">{{item}}</view>
+        </view>
+      </block>
+
+      <view class="label">想说的话</view>
+      <textarea class="textarea" placeholder="写下来，对方会看到，也能在下面回应你 💬" value="{{compose.content}}" bindinput="onComposeInput" auto-height maxlength="-1" />
+
+      <view class="btn-primary {{sending?'disabled':''}}" bindtap="submitCompose">{{compose.editingId ? '保存修改' : '记下来'}}</view>
+      <view class="btn-ghost" bindtap="closeCompose">取消</view>
+    </view>
+  </view>
+
+  <!-- 设置 -->
+  <view wx:if="{{showSettings}}" class="mask" bindtap="closeSettings">
+    <view class="sheet" catchtap="noop">
+      <view class="grip"></view>
+      <view class="sheet-title">设置</view>
+      <view class="label">昵称</view>
+      <input class="text-input" value="{{settingsName}}" bindinput="onSettingsNameInput" placeholder="你的昵称" />
+      <view class="label">头像</view>
+      <view class="emoji-grid">
+        <view wx:for="{{avatarChoices}}" wx:key="*this" class="emoji-opt {{settingsEmoji===item?'active':''}}" bindtap="onSettingsPickEmoji" data-emoji="{{item}}">{{item}}</view>
+      </view>
+      <view class="btn-primary" bindtap="saveSettings">保存</view>
+    </view>
+  </view>
+</block>
+
+<!-- 首次：设置昵称头像（无法关闭，必须设置） -->
+<view wx:if="{{ready && needProfile}}" class="mask">
+  <view class="sheet" catchtap="noop">
+    <view class="setup-logo">💞</view>
+    <view class="setup-title">欢迎来到「我们的记录」</view>
+    <view class="setup-sub">先设置昵称和头像，方便 TA 认出你</view>
+    <view class="label">昵称</view>
+    <input class="text-input" value="{{profileSetup.name}}" bindinput="onSetupNameInput" placeholder="比如：小明 / 宝宝" />
+    <view class="label">头像</view>
+    <view class="emoji-grid">
+      <view wx:for="{{avatarChoices}}" wx:key="*this" class="emoji-opt {{profileSetup.emoji===item?'active':''}}" bindtap="onSetupPickEmoji" data-emoji="{{item}}">{{item}}</view>
+    </view>
+    <view class="btn-primary" bindtap="saveSetup">进入</view>
+  </view>
+</view>

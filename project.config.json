@@ -1,0 +1,19 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "nodeModules": false
+  },
+  "appid": "REPLACE_WITH_YOUR_APPID",
+  "projectname": "我们的记录",
+  "description": "情侣共享的反馈记录本（微信小程序 + 云开发）",
+  "compileType": "miniprogram",
+  "libVersion": "latest",
+  "condition": {}
+}

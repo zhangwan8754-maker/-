@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5a3b5"/>
+      <stop offset="1" stop-color="#e8738a"/>
+    </linearGradient>
+    <linearGradient id="h2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffe6ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- 后面那颗心（半透明，代表另一个人） -->
+  <path transform="translate(150 120) scale(1.05)"
+    d="M110 196 C40 150 6 116 6 74 C6 42 32 18 62 18 C84 18 104 30 110 50 C116 30 136 18 158 18 C188 18 214 42 214 74 C214 116 180 150 110 196 Z"
+    fill="#ffffff" opacity="0.38"/>
+  <!-- 前面那颗心 -->
+  <path transform="translate(120 150)"
+    d="M110 196 C40 150 6 116 6 74 C6 42 32 18 62 18 C84 18 104 30 110 50 C116 30 136 18 158 18 C188 18 214 42 214 74 C214 116 180 150 110 196 Z"
+    fill="url(#h2)"/>
+</svg>

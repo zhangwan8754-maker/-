@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>我们的记录 · 二人反馈日记</title>
+  <meta name="description" content="情侣共享的反馈记录本：互相看到彼此的记录，也能在下面发表想法。" />
+
+  <!-- PWA / 添加到主屏 -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e8738a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="我们的记录" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="boot">正在加载…</div>
+  </div>
+
+  <!-- 加载顺序：Supabase 客户端 → 你的配置 → 应用逻辑（都用 defer 保证按序执行） -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="app.js"></script>
+</body>
+</html>
